@@ -7,6 +7,7 @@ import '../../features/daily_plan/daily_plan_screen.dart';
 import '../../features/daily_plan/next_day_plan_screen.dart';
 import '../../features/wrap_up/wrap_up_overlay_screen.dart';
 import '../../features/voice_widget/voice_debrief_screen.dart';
+import '../../features/timetable/timetable_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -61,6 +62,22 @@ final appRouter = GoRouter(
       path: '/voice-debrief',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const VoiceDebriefScreen(),
+    ),
+    GoRoute(
+      path: '/timetable',
+      parentNavigatorKey: _rootNavigatorKey,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        child: const TimetableScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          );
+        },
+      ),
     ),
   ],
 );

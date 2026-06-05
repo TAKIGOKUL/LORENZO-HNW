@@ -1,0 +1,712 @@
+
+# 🔧 LORENZO — MASTER BUILD PROMPT
+> A complete, phased, production-grade Flutter application specification.
+> Paste this into Claude, Cursor, or your IDE's system prompt to begin building.
+
+---
+
+## SYSTEM DIRECTIVE
+
+You are a Principal Flutter Engineer and Mobile UX Architect hired to build **Lorenzo** — a personal workflow automation and curriculum management app for a Robotics & AI instructor working across multiple schools. Your work will be showcased as a flagship GitHub project targeting European tech hiring.
+
+You must follow **Clean Architecture** principles (feature-first folder structure), use **Riverpod** for state management, and write production-grade, maintainable Dart code. Never write spaghetti code. Every feature must be in its own isolated module.
+
+**Token discipline is mandatory.** Before any code is written, output a brief bulleted plan. Wait for the user to say "Proceed." When updating files, never output the whole file — only the specific changed method or class, using `// ... existing code ...` for surrounding context.
+
+---
+
+## 1. USER CONTEXT
+
+- **User name:** Taki (Gokul G K)
+- **Employee code:** EMP-A04X (alphanumeric, user-defined on first launch)
+- **Role:** Robotics & AI Instructor / Mentor
+- **Organization:** HowNWhy (EdTech startup)
+- **Schools:** 3 schools — referred to as School A, School B, School C
+- **Weekly schedule:** Fixed school assignments per day (editable by user)
+- **Daily obligation:** Post daily plan + next day's plan every day between **6:00 PM – 7:00 PM** in a WhatsApp group
+- **Weekly obligation:** Publish a formatted weekly plan as a Google Doc
+- **Curriculum scope:** Grades 4–8, each grade has a chapter-based syllabus with 2–3 projects per chapter
+
+---
+
+## 2. TECH STACK
+
+| Layer | Technology | Reason |
+|---|---|---|
+| Mobile Frontend | Flutter (Android-first) | Native hardware access, home-screen widgets, background tasks |
+| State Management | Riverpod (flutter_riverpod) | Scalable, testable, compile-safe |
+| Local Database | Hive + SQLite (drift) | Offline-first; cache audio, tasks, timetable |
+| Backend | Next.js (Node.js API Routes) | Secure API key management, NLP orchestration, Google Drive OAuth |
+| Auth & Cloud DB | Supabase (free tier) | Multi-tenancy ready, Postgres, real-time |
+| AI / NLP | Groq API (Llama 3, free tier) | Fast inference for voice-to-structured-report |
+| Speech-to-Text | OpenAI Whisper API (or whisper.cpp if offline needed) | Transcription of voice debriefs |
+| Messaging | WhatsApp Business Cloud API (Meta) | Send formatted plans to WA groups after user review |
+| Google Docs | Google Docs API v1 (via Next.js backend) | Weekly plan generation |
+| Google Drive | Google Drive API v3 (via Next.js backend) | Media/photo folder management |
+| Notifications | flutter_local_notifications + android_alarm_manager_plus | Reminders and 5-min wrap-up alert |
+| Background Tasks | WorkManager (via flutter_workmanager) | Periodic debrief prompts and sync |
+| Home-Screen Widget | home_widget package (Flutter) | Voice note capture widget |
+| Permissions | permission_handler | Mic, storage, location, draw over apps, battery optimization bypass |
+| File Handling | file_picker + image_picker | Timetable PNG upload, media drive upload |
+
+---
+
+## 3. COMPLETE FEATURE LIST
+
+### 3A. Authentication & Profile
+- On first launch: onboarding screen asking for Name, Email ID, Employee Code (alphanumeric)
+- Profile stored locally (Hive) and synced to Supabase
+- No complex login — single-user app; just profile setup
+
+---
+
+### 3B. Home Screen — Dashboard (Primary Screen)
+
+**This is the most critical screen. Build it exactly as described.**
+
+#### Top Bar
+- Dark background (`#0F1117` — near-black with slight blue tint)
+- Top-left: Greeting text — `Good morning, [Name]` in small muted gray
+- Below greeting: User's name in large bold white + employee code badge (pill/chip shape, electric blue `#3B82F6` fill, white monospace text)
+- Top-right: Circular avatar with user initials (e.g., `TK`), dark gray background, white text
+- Below the name row: A horizontal scrollable row of school filter chips
+  - Chips: `All Schools`, `School A`, `School B`, `School C`
+  - Active chip: filled electric blue `#3B82F6`, white text
+  - Inactive chips: outlined, muted gray border, gray text
+  - Selecting a school filters the calendar to only show relevant events
+
+#### Calendar Section
+- Month label: e.g., `June 2026` — white, medium weight. Arrow buttons `‹` and `›` on right to navigate months
+- Weekday headers: `Mo Tu We Th Fr Sa Su` — muted gray, small, evenly spaced
+- Calendar grid: 7 columns, 5–6 rows
+  - Each day cell: minimal, no border box. Just the date number
+  - Today's date: highlighted with a solid electric blue `#3B82F6` circular background, white number
+  - Days with tasks/reminders: small filled dot below the date number — **yellow `#F59E0B`**
+  - Days with critical deadlines: small filled dot — **red `#EF4444`**
+  - Days with school events: small filled dot — **green `#10B981`**
+  - Days outside current month: shown faded/muted, not selectable
+  - Tapping a day: opens a bottom sheet showing that day's tasks, reminders, events, and a `+ Add` button
+  - Swiping left/right on the calendar widget navigates to the next/previous month with a smooth horizontal slide animation
+- Below the calendar grid: a small legend row showing dot-color meanings: `● Task / Reminder  ● Critical deadline  ● School event`
+- A thin horizontal divider separates the calendar from the Quick Actions section
+
+#### Quick Actions Grid
+- Section label: `QUICK ACTIONS` — small, all-caps, letter-spaced, muted gray
+- 2×3 grid of action cards (2 columns, 3 rows = 6 cards)
+- Each card:
+  - Rounded corners (12px)
+  - Dark card background (`#1C1F2A`)
+  - Icon top-left (colored icon, not generic — each card has a unique accent color for the icon)
+  - Card title: white, medium weight
+  - Subtitle: small muted gray caption
+  - Subtle border: `1px solid rgba(255,255,255,0.06)`
+
+Cards (in order, left-to-right, top-to-bottom):
+1. **Daily Plan** — icon: document lines — accent orange `#F97316` — subtitle: `Copy to clipboard`
+2. **Next Day's Plan** — icon: calendar with arrow — accent teal `#14B8A6` — subtitle: `Copy to clipboard`
+3. **Weekly Plan** — icon: grid/table — accent purple `#8B5CF6` — subtitle: `Export to Google Docs`
+4. **Timetable** — icon: clock grid — accent blue `#3B82F6` — subtitle: `View by school / day`
+5. **Drive Upload** — icon: cloud upload — accent red `#EF4444` — subtitle: `Photos & media`
+6. **Voice Note** — icon: microphone — accent green `#10B981` — subtitle: `NLP debrief widget`
+
+#### Bottom Navigation Bar
+- 4 tabs + 1 center FAB-style button:
+  - **Home** (house icon) — active state: electric blue icon + label
+  - **Projects** (checklist icon) — project curriculum tracker
+  - **[Center button]** (up arrow in a pill/capsule shape, dark elevated) — the Wrap-Up call trigger
+  - **Wrap-Up** label with a small red notification dot when a scheduled class is ending soon
+  - **Settings** (gear icon)
+- Bar background: `#0F1117`, thin top border `rgba(255,255,255,0.08)`
+
+---
+
+### 3C. Day Detail Bottom Sheet (when a calendar day is tapped)
+
+- Slides up from the bottom, 60% screen height, draggable
+- Header: selected date in large text, e.g., `Wednesday, 4 June`
+- Sections:
+  - **Tasks** — list of tasks with checkbox, priority badge (🔴 Critical / 🟡 Medium / 🟢 Low), due time
+  - **Reminders** — upcoming reminders for this day
+  - **School Events** — any events tagged to this day
+  - **Class Notes** — any remarks/promises made to students on this day
+- Each task has: checkbox (tap to mark complete), title, optional description, priority color
+- `+ Add Task` button at bottom
+- Task creation: small form asking for title, description, priority, time, tags (student promise, event, deadline)
+- **2–3 day prior alert**: when creating a task, optionally enable "Remind me X days before" (default: 2)
+
+---
+
+### 3D. Daily Plan Creator
+
+Triggered from Quick Actions card. Opens a modal/screen:
+
+**UI:** Clean form with conversational questions (fog-form style), not a raw input form.
+
+Questions asked one at a time or in grouped sections:
+1. **Which school did you visit today?** — chip selector (School A / B / C)
+2. **What grades did you teach?** — multi-select chip (Grade 4 / 5 / 6 / 7 / 8)
+3. **What topic/chapter was covered?** — text input
+4. **How was the session?** — optional short text
+5. **Any remarks or follow-ups to note?** — text input
+6. **Tomorrow's plan:** — what will you cover next?
+
+**Output:**
+- Formatted message ready for WhatsApp
+- Shown in a preview card inside the app
+- Two action buttons: **Copy to Clipboard** | **Send via WhatsApp** (opens review screen before sending)
+- WhatsApp send screen shows the formatted message, allows editing, then confirms and triggers the API call
+
+**Time Constraint Notice:** A small banner on this screen shows: `⚠️ Post between 6:00 PM – 7:00 PM` — turns red if outside the window
+
+---
+
+### 3E. Next Day's Plan Creator
+
+Same fog-form approach as Daily Plan but focused on:
+1. Which school tomorrow?
+2. What grades?
+3. What topic/chapter will you cover?
+4. Any materials or prep needed?
+5. Any student follow-ups to address?
+
+Output: Formatted WhatsApp-ready message. Same clipboard + send flow.
+
+---
+
+### 3F. Weekly Plan Creator (→ Google Docs)
+
+**UI:** Multi-step form covering Mon–Fri
+- For each day: school, grades, topic, activities, notes
+- At the end: preview of the entire week
+- Export button: **Generate Google Doc**
+  - Calls Next.js backend → Google Docs API
+  - Creates a new Doc in a predefined folder in Google Drive with the correct template format
+  - Doc link shown in app with an **Open** button
+
+---
+
+### 3G. Timetable Viewer
+
+- School selector tabs at top: `School A | School B | School C`
+- Weekday selector below: `Mon | Tue | Wed | Thu | Fri`
+- Displays the timetable for selected school + day
+- Timetable is populated either by:
+  - Uploading a PNG (OCR parsed via backend, or manual entry fallback)
+  - Manual entry: period number, subject, time slot, grade
+- Each period row: shows time, grade, subject — color-coded by grade
+- **5-minute wrap-up alarm**: for each class period, a background task triggers 5 minutes before end
+
+---
+
+### 3H. Wrap-Up Call Feature (Center FAB / Scheduled)
+
+This is a **simulated incoming call screen** — not a SIM call.
+
+**Trigger:** 5 minutes before a class ends (via WorkManager background task) OR manually via center FAB button.
+
+**UI — Incoming Call Screen:**
+- Full-screen dark overlay
+- Large animated pulsing circle (electric blue glow)
+- Text: `Lorenzo is calling...`
+- Subtitle: `Class ending in 5 minutes — time to wrap up`
+- School name + grade shown
+- Three action buttons:
+  - 🟢 **Answer** — opens voice debrief screen
+  - 🔴 **Dismiss** — dismisses silently
+  - 🟡 **Snooze** — reschedules for 2 minutes later (shown on call screen as a timer chip)
+- Ringtone: soft chime (bundled asset, no SIM)
+- Works even when phone is locked (uses `draw over other apps` permission + full-screen intent notification)
+
+**After Answering — Voice Debrief Screen:**
+- Waveform animation while recording (real-time amplitude visualization)
+- Microphone button: tap to start/stop recording
+- Status text: `Listening... speak naturally`
+- After recording stops: spinner + `Processing your note...`
+- Backend processes: Whisper (speech-to-text) → Groq LLM (extract tasks, names, deadlines, events) → structured JSON returned
+- Structured output shown as:
+  - List of extracted tasks (with auto-assigned priority)
+  - Detected names (students/teachers) — shown as tags
+  - Detected deadlines — shown with date
+  - Free-form summary paragraph
+- User can edit/delete any extracted item
+- **Save** adds all to calendar/task list; **Discard** deletes
+
+---
+
+### 3I. Voice Note Home-Screen Widget
+
+- Small Android home-screen widget (via `home_widget` package)
+- Contains: app name `Lorenzo`, microphone button, last note timestamp
+- Tapping mic starts an in-app recording session (brings app to foreground)
+- Processed same as the Wrap-Up voice debrief flow
+
+---
+
+### 3J. Projects Screen (Curriculum Tracker)
+
+**Grade tabs at top:** `Grade 4 | Grade 5 | Grade 6 | Grade 7 | Grade 8`
+
+For each grade:
+- List of chapters (expandable cards)
+- Inside each chapter: list of 2–3 projects
+- Each project has a status badge: `To Learn` (gray) | `In Progress` (yellow) | `Mastered` (green)
+- Tapping a project: opens a detail sheet with notes, resources, deadline, and status toggle
+- Progress bar per chapter (e.g., 2/3 projects mastered)
+- Overall grade progress shown as a mini circular progress indicator on each tab
+
+**Events & Competitions Section:**
+- Below the grade curriculum: a separate list for school events (internal) and external competitions
+- Each event: title, date, school, priority badge, preparation notes
+
+---
+
+### 3K. Drive Upload Screen
+
+- School selector (A / B / C)
+- Month + Week selector (auto-fills current)
+- File picker: select photos or videos from phone gallery
+- Preview grid of selected media
+- Upload button: calls Next.js backend → Google Drive API → uploads to correct folder structure:
+  `[Mentor Name] > [School Name] > [Month] > [Week X]`
+- Upload progress indicator per file
+- Success screen shows Drive folder link
+
+---
+
+### 3L. Daily Reminder Notification System
+
+- **6:30 PM every day:** Push notification — `📋 Time to post your Daily Plan and Next Day's Plan`
+- Tapping notification opens Daily Plan Creator directly
+- If user hasn't posted by 7:00 PM: second more urgent notification
+- **Pre-class reminders:** 10 minutes before each scheduled period (based on timetable)
+- **Task deadlines:** Reminder 2–3 days before (based on task creation setting)
+- **Student promise reminders:** Any remark tagged as "promised to students" gets a reminder the night before the next class at that school
+
+---
+
+### 3M. Settings Screen
+
+- Profile: edit name, email, employee code
+- Schools: rename School A/B/C to actual school names
+- Weekly schedule: assign schools to weekdays (default + override)
+- WhatsApp groups: configure group name/ID for each school's group
+- Google account: connect for Drive & Docs access
+- Notification preferences: toggle each reminder type
+- Dark/light mode toggle (default: dark)
+- About: app version, GitHub link
+
+---
+
+## 4. UI DESIGN SYSTEM
+
+### Color Palette
+```
+Background (base):    #0F1117   (near-black, blue-tinted)
+Surface cards:        #1C1F2A   (slightly lighter, card bg)
+Surface elevated:     #252836   (modal/sheet bg)
+Border subtle:        rgba(255,255,255,0.06)
+Border active:        rgba(255,255,255,0.15)
+
+Primary accent:       #3B82F6   (electric blue)
+Success accent:       #10B981   (emerald green)
+Warning accent:       #F59E0B   (amber yellow)
+Danger accent:        #EF4444   (red)
+Purple accent:        #8B5CF6
+Orange accent:        #F97316
+Teal accent:          #14B8A6
+
+Text primary:         #FFFFFF
+Text secondary:       #9CA3AF   (muted gray)
+Text tertiary:        #6B7280   (very muted)
+```
+
+### Typography
+```
+Display font:         'DM Sans' (bold, for name/headers)
+Body font:            'Inter'   (clean, readable)
+Monospace:            'JetBrains Mono' (employee code, time values)
+```
+
+### Spacing & Radius
+```
+Card border-radius:   12px
+Chip border-radius:   20px (pill)
+Modal border-radius:  20px top corners only
+Standard padding:     16px horizontal, 12px vertical
+Card padding:         14px
+Grid gap:             10px
+```
+
+### Motion
+- Calendar month swipe: horizontal slide with 250ms ease-out
+- Bottom sheet: slide up with spring curve
+- Task check: quick checkmark animation + strikethrough
+- Voice waveform: real-time amplitude bars, smooth interpolation
+- Call screen pulsing ring: CSS-style keyframe scale animation (0.9 → 1.1, infinite)
+- Page transitions: fade-slide (not default Material push)
+
+---
+
+## 5. FOLDER STRUCTURE (Flutter — Feature-First Clean Architecture)
+
+```
+lib/
+├── main.dart
+├── core/
+│   ├── theme/           # Colors, text styles, spacing constants
+│   ├── router/          # GoRouter navigation setup
+│   ├── services/        # Notification, permission, audio, background task services
+│   └── utils/           # Date helpers, formatters, extensions
+├── features/
+│   ├── auth/            # Profile setup, onboarding
+│   ├── dashboard/       # Home screen, calendar, quick actions
+│   ├── daily_plan/      # Daily + Next Day plan fog-form + clipboard/WA send
+│   ├── weekly_plan/     # Weekly plan form + Google Docs export
+│   ├── timetable/       # Timetable viewer + PNG upload + period reminders
+│   ├── wrap_up/         # Simulated call screen + voice debrief + NLP processing
+│   ├── projects/        # Curriculum tracker per grade
+│   ├── drive_upload/    # Google Drive media uploader
+│   ├── voice_widget/    # Home-screen widget integration
+│   ├── tasks/           # Calendar task/reminder CRUD
+│   └── settings/        # Profile, school config, WA groups, Google auth
+├── shared/
+│   ├── widgets/         # Reusable: AppCard, ChipSelector, FogForm, WaveformWidget
+│   └── models/          # Shared data models (Task, School, Grade, Project, etc.)
+```
+
+---
+
+## 6. BACKEND (Next.js — API Routes)
+
+All sensitive API keys live here. Flutter only calls these endpoints.
+
+```
+/api/
+├── auth/google          # OAuth flow for Drive + Docs
+├── nlp/process-audio    # Receives base64 audio → Whisper → Groq → returns structured JSON
+├── docs/create-weekly   # Creates Google Doc from weekly plan JSON
+├── drive/upload         # Uploads file to correct Drive folder structure
+├── drive/ensure-folders # Creates mentor/school/month/week folder tree if not present
+└── whatsapp/send        # Sends formatted message to WA group (after user confirmation)
+```
+
+**Security rules:**
+- All routes protected by a simple per-user bearer token (issued on first launch, stored in Supabase)
+- Audio files are processed and immediately deleted — never stored on server
+- School names and student data never logged
+
+---
+
+## 7. DATA MODELS (Dart)
+
+```dart
+// User profile
+class LorenzoUser {
+  String name;
+  String email;
+  String employeeCode;   // alphanumeric, e.g. EMP-A04X
+  Map<String, String> schoolNames;  // {'schoolA': 'Carmel Public School', ...}
+  Map<String, String> weekdaySchoolMap; // {'monday': 'schoolA', ...}
+  Map<String, String> whatsappGroups;   // {'schoolA': 'group_id_123', ...}
+}
+
+// Task / Reminder
+class LorenzoTask {
+  String id;
+  String title;
+  String? description;
+  TaskPriority priority;   // critical, medium, low
+  DateTime dueDate;
+  bool isCompleted;
+  TaskType type;   // reminder, deadline, schoolEvent, studentPromise
+  String? schoolId;
+  int? remindDaysBefore;
+}
+
+// Timetable Period
+class Period {
+  String schoolId;
+  String weekday;
+  int periodNumber;
+  TimeOfDay startTime;
+  TimeOfDay endTime;
+  String grade;
+  String subject;
+}
+
+// Project in curriculum
+class CurriculumProject {
+  String grade;
+  String chapterName;
+  int chapterNumber;
+  String projectTitle;
+  ProjectStatus status;   // toLear, inProgress, mastered
+  String? notes;
+  DateTime? targetCompletionDate;
+}
+
+// Voice Note (raw + processed)
+class VoiceNote {
+  String id;
+  DateTime timestamp;
+  String audioPath;       // local Hive path
+  String? transcription;
+  List<ExtractedTask> extractedTasks;
+  List<String> mentionedNames;
+  bool isSynced;
+}
+```
+
+---
+
+## 8. PHASED BUILD PLAN
+
+### ✅ PHASE 1 — Core Domain Logic (No UI)
+- All data models (Dart classes)
+- Riverpod providers for: tasks, curriculum, timetable, user profile
+- Hive boxes setup for offline storage
+- Unit tests for task CRUD and curriculum state transitions
+
+### ✅ PHASE 2 — UI Shell (Max 5 iterations to lock)
+- Home screen with calendar + quick action grid (exact spec above)
+- Bottom navigation
+- Projects screen (grade tabs + chapter cards)
+- Settings screen (static, no API calls yet)
+- **Lock the UI after 5 iterations. Do not change padding/colors after lockdown.**
+
+### ✅ PHASE 3 — Plan Creators + Clipboard
+- Daily Plan fog-form
+- Next Day's Plan fog-form
+- Output preview + clipboard copy
+- No WhatsApp API yet — just clipboard
+
+### ✅ PHASE 4 — Notifications + Timetable
+- Timetable PNG upload + manual entry
+- flutter_local_notifications for 6:30 PM daily reminder
+- android_alarm_manager for pre-class and wrap-up alarms
+- WorkManager for background periodic checks
+
+### ✅ PHASE 5 — Wrap-Up Call Feature
+- Simulated call screen (full-screen notification intent)
+- Voice recording (mic permission + flutter_sound)
+- Waveform animation widget
+- NLP backend integration (Next.js → Whisper → Groq)
+- Extracted task review + save to calendar
+
+### ✅ PHASE 6 — Google Drive + Docs Integration
+- Next.js backend: Drive OAuth + folder creation + upload
+- Weekly Plan form → Google Doc generation
+- Drive Upload screen
+
+### ✅ PHASE 7 — WhatsApp Integration
+- Next.js backend: WhatsApp Cloud API
+- Review screen before send
+- Send to school-specific group
+
+### ✅ PHASE 8 — Home-Screen Widget
+- home_widget package setup
+- Mic button widget on Android home screen
+- Bridges to in-app voice debrief flow
+
+---
+
+## 9. ACKNOWLEDGEMENT INSTRUCTION
+
+When you receive this prompt, respond with exactly:
+
+> **Lorenzo initialized. Architecture reviewed. Ready for Phase 1: Core Domain Logic.**
+> Please confirm: (a) the school names to use as defaults, (b) confirm Riverpod as the state manager, and (c) should I start with the data models or the Riverpod providers first?
+
+Do not output any code until the user responds.
+
+---
+
+*Built for Taki (Gokul G K) — HowNWhy Robotics Instructor, IEEE PES Kerala Chapter, CEA 2026.*Here is the consolidated and neatly structured master requirements breakdown for **Project Lorenzo**, organized logically by system layer, functional module, and engineering constraints.
+
+---
+
+## 1. Core Profile & System Constraints
+
+* **User Persona:** Taki (Gokul G K), Robotics & AI Instructor at HowNWhy (EdTech startup).
+* **Target Scope:** Currently a single-user operational tool to eliminate personal administrative overhead, but architected with multi-tenancy rules to scale to $10^6$ future instructors seamlessly.
+* **Target Hardware:** Optimized for Android deployment.
+* **Development Machine Restrictions:** HP Victus (Ryzen 5000, RTX 3050). No heavy local LLM execution; all heavy computation must be offloaded to cloud APIs via the Next.js backend layer.
+* **Compliance Target:** Code architecture must pass European/International clean code and SOLID engineering benchmarks for portfolio visibility.
+
+---
+
+## 2. Technical Stack Matrix
+
+| Layer | Technology | Primary Function / Purpose |
+| --- | --- | --- |
+| **Frontend** | Flutter (Dart) | Cross-platform mobile UI, native hardware bindings |
+| **Backend Orchestration** | Next.js (Node.js) | Secure API routing, token protection, cloud orchestration |
+| **Database & Auth** | Supabase (Free Tier) | Relational storage (PostgreSQL), user profile sync |
+| **State Management** | Riverpod | Compile-safe local state management |
+| **Local Cache** | Hive / Drift (SQLite) | Offline-first persistence for tasks, schedules, and audio sync |
+| **Inference Engines** | Groq API (Llama 3) & OpenAI Whisper | Free/fast text extraction and transcription |
+| **Integrations** | Meta WhatsApp Cloud API & Google Workspace APIs | Automated plan distribution and document compilation |
+
+---
+
+## 3. Core Functional Modules
+
+### A. Dashboard & Navigation
+
+* **Primary Screen Layout:** Dark near-black base (#0F1117) containing a greeting, user name, and an alphanumeric employee code badge (`EMP-A04X`).
+* **School Filter Matrix:** Horizontal row of tap-selectable chips (All, School A, School B, School C) to filter downstream calendar data instantly.
+* **Interactive Calendar:** Custom grid showing month/week schedules. Features color-coded event indicators:
+* 🟡 Yellow: Tasks / Reminders
+* 🔴 Red: Critical Deadlines
+* 🟢 Green: School Events
+
+
+* **Quick Actions Grid:** A 2×3 matrix of dedicated action cards (Daily Plan, Next Day's Plan, Weekly Plan, Timetable, Drive Upload, Voice Note) leading directly to functional workflows.
+* **Draggable Day Sheet:** Tapping any day slides up a bottom sheet occupying 60% height to view, check off, or add tasks with a 2–3 day advanced alert rule.
+
+### B. Curriculum & Timetable Engines
+
+* **Grade Tracker:** Hierarchical screen covering Grades 4 to 8. Each grade tracks expandable chapters housing 2–3 specific projects marked as *To Learn*, *In Progress*, or *Mastered*.
+* **Timetable Compiler:** Supports viewing timetables by school or day. Data ingestion allows standard manual entry or uploading a schedule PNG for backend OCR parsing.
+
+### C. The Plan Automated Workflows
+
+* **Daily & Next Day Plan Creators:** Uses conversational "fog-form" input fields instead of standard dense forms to gather teaching details, outputting structured messages optimized for WhatsApp pasting or API transmission.
+* **Posting Guardrails:** Enforces a dedicated alert banner reminding the user to post between 6:00 PM and 7:00 PM daily.
+* **Weekly Document Exporter:** Compiles a full Mon–Fri operational overview and signals the Next.js backend to generate a clean template within Google Docs.
+
+---
+
+## 4. High-Risk Native Integrations
+
+### A. The "Wrap-Up Call" Simulator
+
+* **Background Trigger:** Actives automatically via background alarm tasks exactly 5 minutes before a class period terminates, or manually via the central capsule floating action button.
+* **UI Behaviour:** Overlays a full-screen simulated incoming call interface ("Lorenzo is calling...") that draws over other apps and functions while the device is locked.
+* **Call Responses:** * `Answer`: Launches immediate voice debrief recording.
+* `Dismiss`: Closes the overlay silently.
+* `Snooze`: Sets a temporary 2-minute delta reminder chip.
+
+
+
+### B. Voice & Widget Processing
+
+* **Voice Debrief Screen:** Displays an active, fluid audio amplitude waveform while recording speaking data.
+* **NLP Pipeline:** Audio data travels as a secure payload to Next.js $\rightarrow$ Transcribed via Whisper $\rightarrow$ Structured via Groq $\rightarrow$ Returns organized JSON containing extracted tasks, mentioned student names, and targeted deadlines for user confirmation.
+* **Home Widget:** Native Android widget exposing a one-tap microphone shortcut to initiate foreground recording sessions immediately.
+
+### C. System Permission Framework
+
+* **Granular Hardware Access:** Explicit permission handlers covering Microphone, Location services, and Local Storage.
+* **System Overrides:** Must explicitly prompt the user for *Draw Over Other Apps* (required for the simulated call utility) and *Bypass Battery Optimization* (required to keep background alerts reliable).
+
+---
+
+## 5. Security & Fail-Safe Architecture
+
+* **Data Isolation:** Absolutely zero API credentials or private keys are allowed within the client Flutter codebase. All endpoints are hidden behind the Next.js middle-tier.
+* **Offline-First Stability:** If internet connection drops during a school session, all recorded voice segments, task status updates, and schedule shifts are stored inside the local Hive database and queued for server synchronization upon reconnection.
+* **Data Integrity:** Audio assets are automatically scrubbed from the backend environment immediately after processing.
+
+---
+
+## 6. Execution & Token-Saving Protocol
+
+* **Phased Separation:** Strict focus on data layers and core logic (Phase 1) prior to establishing UI shells (Phase 2), followed by complex hardware integrations.
+* **UI Freeze:** The visual layouts must be locked down tight within 3 to 5 iterations maximum to prevent design loops.
+* **Diff-Only Engineering:** The system operates under a token straightjacket. Code generation outputs are restricted purely to modified code changes and classes, completely eliminating boilerplate redundancy.
+Here is the consolidated and neatly structured master requirements breakdown for **Project Lorenzo**, organized logically by system layer, functional module, and engineering constraints.
+
+---
+
+## 1. Core Profile & System Constraints
+
+* **User Persona:** Taki (Gokul G K), Robotics & AI Instructor at HowNWhy (EdTech startup).
+* **Target Scope:** Currently a single-user operational tool to eliminate personal administrative overhead, but architected with multi-tenancy rules to scale to $10^6$ future instructors seamlessly.
+* **Target Hardware:** Optimized for Android deployment.
+* **Development Machine Restrictions:** HP Victus (Ryzen 5000, RTX 3050). No heavy local LLM execution; all heavy computation must be offloaded to cloud APIs via the Next.js backend layer.
+* **Compliance Target:** Code architecture must pass European/International clean code and SOLID engineering benchmarks for portfolio visibility.
+
+---
+
+## 2. Technical Stack Matrix
+
+| Layer | Technology | Primary Function / Purpose |
+| --- | --- | --- |
+| **Frontend** | Flutter (Dart) | Cross-platform mobile UI, native hardware bindings |
+| **Backend Orchestration** | Next.js (Node.js) | Secure API routing, token protection, cloud orchestration |
+| **Database & Auth** | Supabase (Free Tier) | Relational storage (PostgreSQL), user profile sync |
+| **State Management** | Riverpod | Compile-safe local state management |
+| **Local Cache** | Hive / Drift (SQLite) | Offline-first persistence for tasks, schedules, and audio sync |
+| **Inference Engines** | Groq API (Llama 3) & OpenAI Whisper | Free/fast text extraction and transcription |
+| **Integrations** | Meta WhatsApp Cloud API & Google Workspace APIs | Automated plan distribution and document compilation |
+
+---
+
+## 3. Core Functional Modules
+
+### A. Dashboard & Navigation
+
+* **Primary Screen Layout:** Dark near-black base (#0F1117) containing a greeting, user name, and an alphanumeric employee code badge (`EMP-A04X`).
+* **School Filter Matrix:** Horizontal row of tap-selectable chips (All, School A, School B, School C) to filter downstream calendar data instantly.
+* **Interactive Calendar:** Custom grid showing month/week schedules. Features color-coded event indicators:
+* 🟡 Yellow: Tasks / Reminders
+* 🔴 Red: Critical Deadlines
+* 🟢 Green: School Events
+
+
+* **Quick Actions Grid:** A 2×3 matrix of dedicated action cards (Daily Plan, Next Day's Plan, Weekly Plan, Timetable, Drive Upload, Voice Note) leading directly to functional workflows.
+* **Draggable Day Sheet:** Tapping any day slides up a bottom sheet occupying 60% height to view, check off, or add tasks with a 2–3 day advanced alert rule.
+
+### B. Curriculum & Timetable Engines
+
+* **Grade Tracker:** Hierarchical screen covering Grades 4 to 8. Each grade tracks expandable chapters housing 2–3 specific projects marked as *To Learn*, *In Progress*, or *Mastered*.
+* **Timetable Compiler:** Supports viewing timetables by school or day. Data ingestion allows standard manual entry or uploading a schedule PNG for backend OCR parsing.
+
+### C. The Plan Automated Workflows
+
+* **Daily & Next Day Plan Creators:** Uses conversational "fog-form" input fields instead of standard dense forms to gather teaching details, outputting structured messages optimized for WhatsApp pasting or API transmission.
+* **Posting Guardrails:** Enforces a dedicated alert banner reminding the user to post between 6:00 PM and 7:00 PM daily.
+* **Weekly Document Exporter:** Compiles a full Mon–Fri operational overview and signals the Next.js backend to generate a clean template within Google Docs.
+
+---
+
+## 4. High-Risk Native Integrations
+
+### A. The "Wrap-Up Call" Simulator
+
+* **Background Trigger:** Actives automatically via background alarm tasks exactly 5 minutes before a class period terminates, or manually via the central capsule floating action button.
+* **UI Behaviour:** Overlays a full-screen simulated incoming call interface ("Lorenzo is calling...") that draws over other apps and functions while the device is locked.
+* **Call Responses:** * `Answer`: Launches immediate voice debrief recording.
+* `Dismiss`: Closes the overlay silently.
+* `Snooze`: Sets a temporary 2-minute delta reminder chip.
+
+
+
+### B. Voice & Widget Processing
+
+* **Voice Debrief Screen:** Displays an active, fluid audio amplitude waveform while recording speaking data.
+* **NLP Pipeline:** Audio data travels as a secure payload to Next.js $\rightarrow$ Transcribed via Whisper $\rightarrow$ Structured via Groq $\rightarrow$ Returns organized JSON containing extracted tasks, mentioned student names, and targeted deadlines for user confirmation.
+* **Home Widget:** Native Android widget exposing a one-tap microphone shortcut to initiate foreground recording sessions immediately.
+
+### C. System Permission Framework
+
+* **Granular Hardware Access:** Explicit permission handlers covering Microphone, Location services, and Local Storage.
+* **System Overrides:** Must explicitly prompt the user for *Draw Over Other Apps* (required for the simulated call utility) and *Bypass Battery Optimization* (required to keep background alerts reliable).
+
+---
+
+## 5. Security & Fail-Safe Architecture
+
+* **Data Isolation:** Absolutely zero API credentials or private keys are allowed within the client Flutter codebase. All endpoints are hidden behind the Next.js middle-tier.
+* **Offline-First Stability:** If internet connection drops during a school session, all recorded voice segments, task status updates, and schedule shifts are stored inside the local Hive database and queued for server synchronization upon reconnection.
+* **Data Integrity:** Audio assets are automatically scrubbed from the backend environment immediately after processing.
+
+---
+
+## 6. Execution & Token-Saving Protocol
+
+* **Phased Separation:** Strict focus on data layers and core logic (Phase 1) prior to establishing UI shells (Phase 2), followed by complex hardware integrations.
+* **UI Freeze:** The visual layouts must be locked down tight within 3 to 5 iterations maximum to prevent design loops.
+* **Diff-Only Engineering:** The system operates under a token straightjacket. Code generation outputs are restricted purely to modified code changes and classes, completely eliminating boilerplate redundancy.
+check current status 

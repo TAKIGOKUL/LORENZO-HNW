@@ -12,6 +12,8 @@ class AppColors {
   static const Color shadowLight = Color(0x0AFFFFFF); // Very subtle light edge
   static const Color shadowDark = Color(0xFF050608);  // Deep drop shadow
 
+
+
   // ── Standard Accent Colors (From Prompt) ──
   static const Color primary = Color(0xFF3B82F6);    // Electric blue
   static const Color success = Color(0xFF10B981);    // Emerald green

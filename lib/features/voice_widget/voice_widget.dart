@@ -1,15 +1,15 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 
 class VoiceWidget {
-  static const String _appGroupId = 'com.example.lorenzo'; // Should match iOS
+  static const String _appGroupId = 'com.example.lorenzo';
   static const String _iOSWidgetName = 'VoiceWidget';
   static const String _androidWidgetName = 'VoiceWidgetProvider';
 
   static Future<void> init() async {
+    if (kIsWeb) return; // home_widget not supported on web
     await HomeWidget.setAppGroupId(_appGroupId);
-    
-    // Register interop callback
     HomeWidget.registerInteractivityCallback(backgroundCallback);
   }
 }

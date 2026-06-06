@@ -59,7 +59,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ? name.substring(0, 2).toUpperCase()
         : name.substring(0, 1).toUpperCase();
 
-    final schools = ['All Schools', 'LC Silver oak', 'LC Serene Valley', 'LC Svmps'];
+    final schools = ['All Schools', 'School A', 'School B', 'School C'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,12 +81,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       Text(name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 26, fontWeight: FontWeight.w800)),
                       const SizedBox(width: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [AppColors.primary, AppColors.purple]),
+                          color: AppColors.primary.withAlpha(40),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text(empCode, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                        child: Text(empCode, style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                       ),
                     ],
                   ),
@@ -95,11 +95,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             // Neumorphic avatar
             Container(
-              width: 48,
-              height: 48,
-              decoration: AppColors.neumorphicRaised(radius: 16),
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1E2A44),
+                shape: BoxShape.circle,
+              ),
               child: Center(
-                child: Text(initials, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 18)),
+                child: Text(initials, style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 16)),
               ),
             ),
           ],
@@ -121,14 +124,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: isActive
                         ? BoxDecoration(
-                            gradient: const LinearGradient(colors: [AppColors.primary, AppColors.purple]),
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: [BoxShadow(color: AppColors.primary.withAlpha(60), blurRadius: 12, offset: const Offset(0, 4))],
                           )
-                        : AppColors.neumorphicRaised(radius: 20),
+                        : BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.borderSubtle),
+                          ),
                     child: Text(
                       s,
-                      style: TextStyle(color: isActive ? Colors.white : AppColors.textSecondary, fontWeight: FontWeight.w700, fontSize: 13),
+                      style: TextStyle(color: isActive ? Colors.white : AppColors.textSecondary, fontWeight: isActive ? FontWeight.w600 : FontWeight.w500, fontSize: 13),
                     ),
                   ),
                 ),
@@ -141,10 +147,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildCalendarCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: AppColors.neumorphicRaised(radius: 24),
-      child: Column(
+    return Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -180,18 +183,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           _buildDayGrid(),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              _legendChip('📌 Task', AppColors.warning),
-              const SizedBox(width: 12),
-              _legendChip('🔴 Urgent', AppColors.danger),
-              const SizedBox(width: 12),
-              _legendChip('📅 Event', AppColors.success),
+              _legendChip('Task / Reminder', AppColors.warning),
+              const SizedBox(width: 16),
+              _legendChip('Critical deadline', AppColors.danger),
+              const SizedBox(width: 16),
+              _legendChip('School event', AppColors.success),
             ],
           ),
+          const SizedBox(height: 16),
+          const Divider(color: AppColors.borderSubtle, height: 1),
         ],
-      ),
-    );
+      );
   }
 
   Widget _navButton(IconData icon, VoidCallback onTap) {
@@ -239,17 +243,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 height: 34,
                 decoration: isToday
                     ? BoxDecoration(
-                        gradient: const LinearGradient(colors: [AppColors.primary, AppColors.purple]),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: AppColors.primary.withAlpha(80), blurRadius: 8, offset: const Offset(0, 3))],
+                        color: AppColors.primary.withAlpha(40),
+                        border: Border.all(color: AppColors.primary, width: 1.5),
+                        borderRadius: BorderRadius.circular(10),
                       )
-                    : AppColors.neumorphicFlat(radius: 12),
+                    : null,
                 child: Center(
                   child: Text(
                     '$day',
                     style: TextStyle(
                       color: isToday ? Colors.white : AppColors.textPrimary,
-                      fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
+                      fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                       fontSize: 13,
                     ),
                   ),
@@ -274,10 +278,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _dot(Color c) => Container(margin: const EdgeInsets.symmetric(horizontal: 1), width: 5, height: 5, decoration: BoxDecoration(color: c, shape: BoxShape.circle));
 
   Widget _legendChip(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: AppColors.neumorphicPressed(radius: 8),
-      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w700)),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
+      ],
     );
   }
 
@@ -285,7 +292,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Quick Actions ✨', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w800)),
+        const Text('QUICK ACTIONS', style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
         const SizedBox(height: 16),
         GridView.count(
           crossAxisCount: 2,
@@ -293,14 +300,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 14,
           mainAxisSpacing: 14,
-          childAspectRatio: 1.35,
+          childAspectRatio: 1.6,
           children: [
-            _ActionCard(icon: Icons.edit_note_rounded, title: 'Daily Plan', subtitle: 'Copy to clipboard', iconColor: AppColors.orange, onTap: () => context.push('/daily-plan')),
-            _ActionCard(icon: Icons.calendar_today_rounded, title: "Next Day's Plan", subtitle: 'Copy to clipboard', iconColor: AppColors.teal, onTap: () => context.push('/next-day-plan')),
-            _ActionCard(icon: Icons.grid_view_rounded, title: 'Weekly Plan', subtitle: 'Export to Docs', iconColor: AppColors.purple),
-            _ActionCard(icon: Icons.access_time_rounded, title: 'Timetable', subtitle: 'View by school', iconColor: AppColors.primary, onTap: () => context.push('/timetable')),
-            const _ActionCard(icon: Icons.cloud_upload_rounded, title: 'Drive Upload', subtitle: 'Photos & media', iconColor: AppColors.danger),
-            _ActionCard(icon: Icons.mic_rounded, title: 'Voice Note', subtitle: 'NLP debrief', iconColor: AppColors.success, onTap: () => context.push('/voice-debrief')),
+            _ActionCard(icon: Icons.description_outlined, title: 'Daily Plan', subtitle: 'Copy to clipboard', iconColor: const Color(0xFF3B82F6), onTap: () => context.push('/daily-plan')),
+            _ActionCard(icon: Icons.event_available_outlined, title: "Next Day's Plan", subtitle: 'Copy to clipboard', iconColor: const Color(0xFF10B981), onTap: () => context.push('/next-day-plan')),
+            _ActionCard(icon: Icons.assignment_outlined, title: 'Weekly Plan', subtitle: 'Export to Google Docs', iconColor: const Color(0xFFF97316)),
+            _ActionCard(icon: Icons.grid_view_rounded, title: 'Timetable', subtitle: 'View by school / day', iconColor: const Color(0xFF8B5CF6), onTap: () => context.push('/timetable')),
+            const _ActionCard(icon: Icons.add_to_drive_outlined, title: 'Drive Upload', subtitle: 'Photos & media', iconColor: Color(0xFFEF4444)),
+            _ActionCard(icon: Icons.mic_none_rounded, title: 'Voice Note', subtitle: 'NLP debrief widget', iconColor: const Color(0xFF06B6D4), onTap: () => context.push('/voice-debrief')),
           ],
         ),
       ],
@@ -323,20 +330,24 @@ class _ActionCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: AppColors.neumorphicRaised(radius: 20),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderSubtle),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: iconColor.withAlpha(35), borderRadius: BorderRadius.circular(14)),
-              child: Icon(icon, color: iconColor, size: 24),
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: iconColor, size: 20),
             ),
             const Spacer(),
-            Text(title, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800, fontSize: 14)),
-            const SizedBox(height: 2),
-            Text(subtitle, style: TextStyle(color: iconColor.withAlpha(180), fontSize: 11, fontWeight: FontWeight.w600)),
+            Text(title, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13)),
+            const SizedBox(height: 4),
+            Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w400)),
           ],
         ),
       ),

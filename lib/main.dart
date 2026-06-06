@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/services/storage_service.dart';
@@ -15,16 +16,18 @@ void main() async {
     debugPrint('StorageService init error: $e');
   }
   
-  try {
-    await NotificationService.init();
-  } catch (e) {
-    debugPrint('NotificationService init error: $e');
-  }
-  
-  try {
-    await VoiceWidget.init();
-  } catch (e) {
-    debugPrint('VoiceWidget init error: $e');
+  if (!kIsWeb) {
+    try {
+      await NotificationService.init();
+    } catch (e) {
+      debugPrint('NotificationService init error: $e');
+    }
+    
+    try {
+      await VoiceWidget.init();
+    } catch (e) {
+      debugPrint('VoiceWidget init error: $e');
+    }
   }
 
   runApp(
@@ -71,6 +74,15 @@ class _LorenzoAppState extends State<LorenzoApp> {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       routerConfig: appRouter,
+      builder: (context, child) {
+        // Responsive web wrapper: constrain to max 520px on wide screens
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: child!,
+          ),
+        );
+      },
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,6 +29,12 @@ class _VoiceDebriefScreenState extends State<VoiceDebriefScreen> {
   }
 
   Future<void> _startRecording() async {
+    if (kIsWeb) {
+      // On web: show a stub UI (mic recording not supported without WASM)
+      if (mounted) setState(() => _recordDuration = 0);
+      _startTimer();
+      return;
+    }
     try {
       if (await _audioRecorder.hasPermission()) {
         // Record to a temporary path

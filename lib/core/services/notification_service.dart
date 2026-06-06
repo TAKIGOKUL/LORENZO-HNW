@@ -1,5 +1,5 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -18,6 +18,7 @@ class NotificationService {
   static const String _periodChannelName = 'Pre-class Period Reminders';
 
   static Future<void> init() async {
+    if (kIsWeb) return; // Notifications not supported on web
     tz.initializeTimeZones();
     try {
       tz.setLocalLocation(tz.getLocation('Asia/Kolkata')); // Standard default for India / HowNWhy
@@ -76,6 +77,7 @@ class NotificationService {
 
   /// Schedule Daily Plan reminder at 6:30 PM (18:30)
   static Future<void> scheduleDailyPlanReminder(bool enabled) async {
+    if (kIsWeb) return;
     try {
       // First cancel existing daily plan reminder
       await _notificationsPlugin.cancel(id: _dailyPlanId);
@@ -129,6 +131,7 @@ class NotificationService {
   /// Reschedule reminders for all periods
   /// Scheduled 10 minutes before the period starts
   static Future<void> rescheduleAllPeriods(List<Period> periods, bool preClassEnabled) async {
+    if (kIsWeb) return;
     try {
       // First, cancel all notifications in the period category range by cancellation or all
       for (final p in periods) {
